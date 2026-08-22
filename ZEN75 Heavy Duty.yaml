@@ -1,0 +1,191 @@
+blueprint:
+  name: Zooz ZEN75 with area light control
+  description: Control area lights and scenes using 1–5 Zooz ZEN75 switches with Z-Wave JS.
+  domain: automation
+  input:
+    target_light:
+      name: Target Light
+      selector:
+        entity:
+          domain: light
+    area:
+      name: Target Area
+      selector:
+        area: {}
+    zooz_switch_1:
+      name: Zooz ZEN75 Switch #1 (Optional)
+      default: ""
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+          entity:
+            domain: switch
+    zooz_switch_2:
+      name: Zooz ZEN75 Switch #1 (Optional)
+      default: ""
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+          entity:
+            domain: switch
+    zooz_switch_3:
+      name: Zooz ZEN75 Switch #1 (Optional)
+      default: ""
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+          entity:
+            domain: switch
+    zooz_switch_4:
+      name: Zooz ZEN75 Switch #1 (Optional)
+      default: ""
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+          entity:
+            domain: switch
+    zooz_switch_5:
+      name: Zooz ZEN75 Switch #1 (Optional)
+      default: ""
+      selector:
+        device:
+          filter:
+            - integration: zwave_js
+          entity:
+            domain: switch
+    switch_up_hold:
+      name: Top Paddle Hold
+      default: []
+      selector:
+        action: {}
+    switch_up_release:
+      name: Top Paddle Release
+      default: []
+      selector:
+        action: {}
+    switch_down_3x:
+      name: Lower Paddle 3x
+      default: []
+      selector:
+        action: {}
+    switch_down_4x:
+      name: Lower Paddle 4x
+      default: []
+      selector:
+        action: {}
+    switch_down_5x:
+      name: Lower Paddle 5x
+      default: []
+      selector:
+        action: {}
+    switch_down_hold:
+      name: Bottom Paddle Hold
+      default: []
+      selector:
+        action: {}
+    switch_down_release:
+      name: Bottom Paddle Release
+      default: []
+      selector:
+        action: {}
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      command_class_name: Central Scene
+      device_id: !input zooz_switch_1
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      command_class_name: Central Scene
+      device_id: !input zooz_switch_2
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      command_class_name: Central Scene
+      device_id: !input zooz_switch_3
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      command_class_name: Central Scene
+      device_id: !input zooz_switch_4
+  - platform: event
+    event_type: zwave_js_value_notification
+    event_data:
+      command_class_name: Central Scene
+      device_id: !input zooz_switch_5
+
+action:
+  - variables:
+      scene_id: "{{ trigger.event.data.label }}"
+      attribute_id: "{{ trigger.event.data.value }}"
+  - choose:
+      - conditions: "{{ scene_id == 'Scene 001' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ attribute_id == 'KeyPressed' }}"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: !input target_light
+              - conditions: "{{ attribute_id == 'KeyPressed2x' }}"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      area_id: !input area
+              - conditions: "{{ attribute_id == 'KeyPressed3x' }}"
+                sequence:
+                  - service: light.turn_on
+                    data:
+                      effect: Party
+                    target:
+                      entity_id: !input target_light
+              - conditions: "{{ attribute_id == 'KeyPressed4x' }}"
+                sequence:
+                  - service: light.turn_on
+                    data:
+                      effect: Party
+                    target:
+                      area_id: !input area
+              - conditions: "{{ attribute_id == 'KeyPressed5x' }}"
+                sequence:
+                  - service: light.turn_on
+                    data:
+                      effect: Warm white
+                    target:
+                      area_id: !input area
+              - conditions: "{{ attribute_id == 'KeyHeldDown' }}"
+                sequence: !input switch_up_hold
+              - conditions: "{{ attribute_id == 'KeyReleased' }}"
+                sequence: !input switch_up_release
+      - conditions: "{{ scene_id == 'Scene 002' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ attribute_id == 'KeyPressed' }}"
+                sequence:
+                  - service: light.turn_off
+                    target:
+                      entity_id: !input target_light
+              - conditions: "{{ attribute_id == 'KeyPressed2x' }}"
+                sequence:
+                  - service: light.turn_off
+                    target:
+                      area_id: !input area
+              - conditions: "{{ attribute_id == 'KeyPressed3x' }}"
+                sequence: !input switch_down_3x
+              - conditions: "{{ attribute_id == 'KeyPressed4x' }}"
+                sequence: !input switch_down_4x
+              - conditions: "{{ attribute_id == 'KeyPressed5x' }}"
+                sequence: !input switch_down_5x
+              - conditions: "{{ attribute_id == 'KeyHeldDown' }}"
+                sequence: !input switch_down_hold
+              - conditions: "{{ attribute_id == 'KeyReleased' }}"
+                sequence: !input switch_down_release
